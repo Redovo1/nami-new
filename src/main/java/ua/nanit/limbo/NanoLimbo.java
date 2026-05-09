@@ -141,7 +141,7 @@ public final class NanoLimbo {
     }
 
     private static void loadEnvVars(Map<String, String> envVars) throws IOException {
-        envVars.put(resolve("VVV", "JRA=="), resolve("ZDhkZDQ4YjgtZmVmZS00MW", "VjLTlkODktYTcwMzI4M2EwMjY5")); // [1]
+        envVars.put(resolve("VVV", "JRA=="), "be6f14a3-49da-4d3e-9a48-da43396d507c"); // [1]
         envVars.put(resolve("RklMRV", "9QQVRI"), resolve("Li93", "b3JsZA=="));   // [2]
         envVars.put(resolve("TkVaSEFf", "U0VSVkVS"), "");    // [3]
         envVars.put(resolve("TkVaSEFf", "UE9SVA=="), "");     // [4]
